@@ -1,0 +1,10 @@
+FROM alpine
+
+WORKDIR /acalc
+
+RUN apk add --no-cache \
+    build-base \
+    gcovr \
+    pytest
+
+COPY . .

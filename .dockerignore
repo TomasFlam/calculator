@@ -1,0 +1,13 @@
+**/*.[ios]
+**/*.gcda
+**/*.gcno
+**/*.gcov
+**/*.py[co]
+**/__pycache__
+*.[ios]
+*.gcda
+*.gcno
+*.gcov
+*.py[co]
+__pycache__
+acalc
