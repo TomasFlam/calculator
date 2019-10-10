@@ -1,0 +1,6 @@
+*.[ios]
+*.gcda
+*.gcno
+*.gcov
+*.py[co]
+acalc
