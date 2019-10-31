@@ -1,9 +1,8 @@
-import functools as _functools
-import os.path
+from pathlib import Path as _Path
 
 # directories
-tests = _functools.partial(os.path.join, os.path.dirname(__file__))
-project_root = _functools.partial(tests, os.path.pardir)
+tests = _Path(__file__).parent
+project_root = tests.parent
 
 # files
-ACALC = project_root('acalc')
+ACALC = project_root.joinpath('acalc')
