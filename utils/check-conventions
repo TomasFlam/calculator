@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC1090
+
+set -e -o pipefail -u
+
+. "$(dirname "${BASH_SOURCE[0]}")/../lib.sh"
+
+section -d - 'Check no file ends with an empty line'
+verbose eval git ls-files \| xargs files-do-not-end-with-empty-line

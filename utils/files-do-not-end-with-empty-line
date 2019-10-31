@@ -1,0 +1,35 @@
+#!/usr/bin/env python
+
+import argparse
+import os
+import sys
+
+parser = argparse.ArgumentParser()
+parser.add_argument('paths', nargs='*')
+
+
+def check_file(path):
+    size = os.stat(path).st_size
+    if size == 0:
+        return 0
+
+    with open(path, 'rb') as f:
+        if size == 1:
+            return int(f.read() == b'\n')
+
+        f.seek(size - 2)
+        return int(f.read() == b'\n\n')
+
+
+def main():
+    exit_code = 0
+    ns = parser.parse_args()
+    for path in ns.paths:
+        err = check_file(path)
+        if err:
+            exit_code = err
+            print(path)
+    sys.exit(exit_code)
+
+
+main()

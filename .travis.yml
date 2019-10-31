@@ -1,5 +1,8 @@
 ---
 os: linux
 dist: bionic
-language: shell
-script: make gcovr-alpine
+language: python
+python:
+  - "3.7"
+script:
+  - make ci-travis

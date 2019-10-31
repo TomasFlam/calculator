@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+
+import argparse
+
+
+def delim_type(x):
+    if len(x) != 1:
+        raise ValueError(f'len({x}) == {len(x)} != 1')
+    return x
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('section', metavar='SECTION')
+parser.add_argument('-d', '--delim', default='=', type=delim_type)
+
+ns = parser.parse_args()
+
+
+def print_delim():
+    print(ns.delim * len(ns.section))
+
+
+print_delim()
+print(f'\x1b[33m{ns.section}\x1b[0m')
+print_delim()
