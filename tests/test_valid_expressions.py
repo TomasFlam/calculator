@@ -22,7 +22,7 @@ def cases_numbers():
 
 @h.cases(cases_numbers())
 def test(_: str, case: Case):
-    argv = [paths.ACALC, case.expression]
-    pr = h.run(argv, stdout=h.PIPE)
+    argv = [paths.ACALC]
+    pr = h.run(argv, input=case.expression.encode(), stdout=h.PIPE)
     assert pr.returncode == 0
     assert pr.stdout.decode() == case.expected
