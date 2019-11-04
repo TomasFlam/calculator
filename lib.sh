@@ -42,9 +42,9 @@ verbose () {
 		ansi_color 6  # cyan
 		printf '$ '
 		escape "$@"
-		printf '\n'
 		ansi_reset
-	fi
+		printf '\n'
+	fi >&2
 
 	local __exit_code=0
 	"$@" || __exit_code=$?
@@ -58,12 +58,12 @@ verbose () {
 			ansi_color 2  # green
 		else
 			ansi_color 1  # red
-		fi >&2
+		fi
 		printf '%s ' $__exit_code
 		escape "$@"
-		printf '\n'
 		ansi_reset
-	fi
+		printf '\n'
+	fi >&2
 
 	return $__exit_code
 }

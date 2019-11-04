@@ -1,3 +1,4 @@
+import functools as _functools
 import subprocess as _subprocess
 
 import pytest
@@ -5,8 +6,20 @@ import pytest
 PIPE = _subprocess.PIPE
 
 
-def cases(cases):
-    return pytest.mark.parametrize('_, case', ((str(c), c) for c in cases))
+def colored(c: int, s: str):
+    return f'\x1b[3{c}m{s}\x1b[0m'
+
+
+red = _functools.partial(colored, 1)
+green = _functools.partial(colored, 2)
+cyan = _functools.partial(colored, 6)
+
+
+def cases(cases, *, space_replacement='_'):
+    return pytest.mark.parametrize(
+        '_, case',
+        ((str(c).replace(' ', space_replacement), c) for c in cases),
+    )
 
 
 class _Valgrind:

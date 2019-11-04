@@ -7,3 +7,4 @@ utils = project_root.joinpath(project_root, 'utils')
 
 # files
 ACALC = project_root.joinpath('acalc')
+LIB_SH = project_root.joinpath('lib.sh')
