@@ -15,12 +15,22 @@ CFLAGS += -fprofile-arcs
 CFLAGS += -ftest-coverage
 
 IMAGE_ALPINE := tomasflam/acalc-alpine
+IMAGE_UBUNTU_BIONIC := tomasflam/acalc-ubuntu-bionic
 
 RUN_ALPINE := docker run --rm $(IMAGE_ALPINE)
+RUN_UBUNTU_BIONIC := docker run --rm $(IMAGE_UBUNTU_BIONIC)
 
 PROGRAMS := acalc
 
 all: $(PROGRAMS)
+
+scan.c: scan.l
+
+scan.o: CFLAGS :=
+scan.o: scan.c
+
+acalc: LDFLAGS += -lfl
+acalc: scan.o
 
 .PHONY: run-tests
 run-tests: all
@@ -35,11 +45,15 @@ run-tests-all: run-tests run-tests-alpine
 
 .PHONY: gcovr
 gcovr: clean-coverage run-tests
-	@verbose gcovr -s
+	@verbose gcovr -s -e scan.c
 
 .PHONY: gcovr-alpine
 gcovr-alpine: docker-image-alpine
 	@verbose $(RUN_ALPINE) make gcovr
+
+.PHONY: gcovr-ubuntu-bionic
+gcovr-ubuntu-bionic: docker-image-ubuntu-bionic
+	@verbose $(RUN_UBUNTU_BIONIC) make gcovr
 
 .PHONY: gcovr-all
 gcovr-all: gcovr gcovr-alpine
@@ -47,6 +61,10 @@ gcovr-all: gcovr gcovr-alpine
 .PHONY: docker-image-alpine
 docker-image-alpine:
 	@verbose docker build -t $(IMAGE_ALPINE) -f Dockerfile.alpine .
+
+.PHONY: docker-image-ubuntu-bionic
+docker-image-ubuntu-bionic:
+	@verbose docker build -t $(IMAGE_UBUNTU_BIONIC) -f Dockerfile.ubuntu.bionic .
 
 .PHONY: check-conventions
 check-conventions:
@@ -60,7 +78,7 @@ flake8:
 ci-stage-lint: check-conventions flake8
 
 .PHONY: ci-stage-test
-ci-stage-test: gcovr gcovr-alpine
+ci-stage-test: gcovr gcovr-alpine gcovr-ubuntu-bionic
 
 .PHONY: ci-travis
 ci-pipeline: ci-stage-lint ci-stage-test
@@ -75,4 +93,4 @@ clean-coverage:
 
 .PHONY: clean
 clean: clean-coverage
-	rm -rf *.[ios] *.gcno $(PROGRAMS)
+	rm -rf *.[ios] *.gcno scan.c $(PROGRAMS)
