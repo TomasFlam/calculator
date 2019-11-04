@@ -3,6 +3,10 @@
 SHELL := bash -e -o pipefail -u
 export BASH_ENV := $(CURDIR)/lib.sh
 
+PYTHON_FILES = $(shell git ls-files -- '*.py')
+PYTHON_FILES += utils/files-do-not-end-with-empty-line
+PYTHON_FILES += utils/section
+
 CFLAGS += -O0
 CFLAGS += -Wall
 CFLAGS += -Wextra
@@ -48,8 +52,18 @@ docker-image-alpine:
 check-conventions:
 	@section 'Conventions' && verbose utils/check-conventions
 
+.PHONY: flake8
+flake8:
+	@section 'Flake8' && verbose --only-failure flake8 $(PYTHON_FILES)
+
+.PHONY: ci-stage-lint
+ci-stage-lint: check-conventions flake8
+
+.PHONY: ci-stage-test
+ci-stage-test: gcovr gcovr-alpine
+
 .PHONY: ci-travis
-ci-travis: check-conventions gcovr
+ci-pipeline: ci-stage-lint ci-stage-test
 
 .PHONY: pip-install
 pip-install:
