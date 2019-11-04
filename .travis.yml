@@ -18,6 +18,7 @@ jobs:
       script: make check-conventions
     - stage: test
       name: Host
+      before_install: sudo apt-get install -y libfl-dev
       script: make gcovr
     - stage: test
       name: Alpine

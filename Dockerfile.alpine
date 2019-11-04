@@ -5,6 +5,7 @@ WORKDIR /acalc
 RUN apk add --no-cache \
     bash \
     build-base \
+    flex-dev \
     python3
 
 RUN : \

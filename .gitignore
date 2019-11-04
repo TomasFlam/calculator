@@ -4,3 +4,4 @@
 *.gcov
 *.py[co]
 acalc
+scan.c
