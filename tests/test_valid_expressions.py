@@ -14,13 +14,14 @@ class Case:
         return f'{self.name}:{self.expression}'
 
 
-def cases_numbers():
-    c = functools.partial(Case, 'number')
+def cases_integers():
+    c = functools.partial(Case, 'integer')
     yield c('0', '0\n')
     yield c('1', '1\n')
+    yield c('12', '12\n')
 
 
-@h.cases(cases_numbers())
+@h.cases(cases_integers())
 def test(_: str, case: Case):
     argv = [paths.ACALC]
     pr = h.run(argv, input=case.expression.encode(), stdout=h.PIPE)
