@@ -1,8 +1,11 @@
 %{
-int result = 0;
+int yylval;
+enum yytokentype {
+	NUMBER = 1,
+};
 %}
 
 %%
-[0-9]+	{ result = atoi(yytext); }
+[0-9]+	{ yylval = atoi(yytext); return NUMBER; }
 .	{ }
 %%

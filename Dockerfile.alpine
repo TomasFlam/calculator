@@ -6,7 +6,9 @@ RUN apk add --no-cache \
     bash \
     build-base \
     flex-dev \
-    python3
+    libxml2-dev \
+    libxslt-dev \
+    python3-dev
 
 RUN : \
     && ln -s /usr/bin/python3 /usr/bin/python \
