@@ -20,6 +20,8 @@ IMAGE_UBUNTU_BIONIC := tomasflam/acalc-ubuntu-bionic
 RUN_ALPINE := docker run --rm $(IMAGE_ALPINE)
 RUN_UBUNTU_BIONIC := docker run --rm $(IMAGE_UBUNTU_BIONIC)
 
+DOCKER_BUILD = docker build $(DOCKER_BUILD_FLAGS)
+
 PROGRAMS := acalc
 
 all: $(PROGRAMS)
@@ -60,11 +62,11 @@ gcovr-all: gcovr gcovr-alpine
 
 .PHONY: docker-image-alpine
 docker-image-alpine:
-	@verbose docker build -t $(IMAGE_ALPINE) -f Dockerfile.alpine .
+	@verbose $(DOCKER_BUILD) -t $(IMAGE_ALPINE) -f Dockerfile.alpine .
 
 .PHONY: docker-image-ubuntu-bionic
 docker-image-ubuntu-bionic:
-	@verbose docker build -t $(IMAGE_UBUNTU_BIONIC) -f Dockerfile.ubuntu.bionic .
+	@verbose $(DOCKER_BUILD) -t $(IMAGE_UBUNTU_BIONIC) -f Dockerfile.ubuntu.bionic .
 
 .PHONY: check-conventions
 check-conventions:
