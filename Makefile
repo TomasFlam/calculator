@@ -36,7 +36,7 @@ acalc: scan.o
 
 .PHONY: run-tests
 run-tests: all
-	@section 'Tests' && verbose py.test --cov utils
+	@section 'Tests' && verbose py.test --cov utils --valgrind
 
 .PHONY: run-tests-alpine
 run-tests-alpine: docker-image-alpine
