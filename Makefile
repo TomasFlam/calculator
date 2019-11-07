@@ -24,6 +24,13 @@ DOCKER_BUILD = docker build $(DOCKER_BUILD_FLAGS)
 
 PROGRAMS := acalc
 
+H1 := section -d =
+H2 := section -d -
+
+GCOVR := gcovr -s --fail-under-line 100 --fail-under-branch 100
+
+M = MAKELEVEL=0 $(MAKE)
+
 all: $(PROGRAMS)
 
 scan.c: scan.l
@@ -35,30 +42,17 @@ acalc: LDFLAGS += -lfl
 acalc: scan.o
 
 .PHONY: run-tests
-run-tests: all
-	@section 'Tests' && verbose py.test --cov utils --valgrind
+run-tests: clean-coverage all
+	@$(H1) 'Tests' && verbose pytest --cov utils
 
-.PHONY: run-tests-alpine
-run-tests-alpine: docker-image-alpine
-	@verbose $(RUN_ALPINE) make run-tests
+.PHONY: run-tests-valgrind
+run-tests-valgrind: clean-coverage all
+	@$(H1) 'Tests (valgrind)' && verbose pytest --cov utils --valgrind
 
-.PHONY: run-tests-all
-run-tests-all: run-tests run-tests-alpine
-
-.PHONY: gcovr
-gcovr: clean-coverage run-tests
-	@verbose gcovr -s -e scan.c
-
-.PHONY: gcovr-alpine
-gcovr-alpine: docker-image-alpine
-	@verbose $(RUN_ALPINE) make gcovr
-
-.PHONY: gcovr-ubuntu-bionic
-gcovr-ubuntu-bionic: docker-image-ubuntu-bionic
-	@verbose $(RUN_UBUNTU_BIONIC) make gcovr
-
-.PHONY: gcovr-all
-gcovr-all: gcovr gcovr-alpine gcovr-ubuntu-bionic
+.PHONY: run-tests-valgrind-verbose
+run-tests-valgrind-verbose: clean-coverage all
+	@$(H1) 'Tests (valgrind verbose)' \
+		&& verbose pytest --cov utils --valgrind --valgrind-verbose
 
 .PHONY: docker-image-alpine
 docker-image-alpine:
@@ -66,36 +60,82 @@ docker-image-alpine:
 
 .PHONY: docker-image-ubuntu-bionic
 docker-image-ubuntu-bionic:
-	@verbose $(DOCKER_BUILD) -t $(IMAGE_UBUNTU_BIONIC) -f Dockerfile.ubuntu.bionic .
-
-.PHONY: check-conventions
-check-conventions:
-	@section 'Conventions' && verbose utils/check-conventions
-
-.PHONY: flake8
-flake8:
-	@section 'Flake8' && verbose --only-failure flake8 $(PYTHON_FILES)
-
-.PHONY: ci-stage-lint
-ci-stage-lint: check-conventions flake8
-
-.PHONY: ci-stage-test
-ci-stage-test: gcovr-all
-
-.PHONY: ci-travis
-ci-travis: ci-stage-lint gcovr
-
-.PHONY: ci-pipeline
-ci-pipeline: ci-stage-lint ci-stage-test
+	@verbose $(DOCKER_BUILD) -t $(IMAGE_UBUNTU_BIONIC) \
+		-f Dockerfile.ubuntu.bionic .
 
 .PHONY: pip-install
 pip-install:
 	@verbose pip install -r requirements.txt -U --upgrade-strategy=eager
 
-.PHONY: clean-coverage
-clean-coverage:
+.PHONY: clean-coverage-python
+clean-coverage-python:
+	rm -f .coverage
+
+.PHONY: clean-coverage-gcov
+clean-coverage-gcov:
 	rm -f *.gcda *.gcov
+
+.PHONY: clean-coverage
+clean-coverage: clean-coverage-gcov clean-coverage-python
 
 .PHONY: clean
 clean: clean-coverage
 	rm -rf *.[ios] *.gcno scan.c $(PROGRAMS)
+
+######
+# CI #
+######
+
+.PHONY: ci-job-conventions
+ci-job-conventions:
+	@$(H1) 'Conventions'
+	@verbose utils/check-conventions
+
+.PHONY: ci-job-flake8
+ci-job-flake8:
+	@$(H1) 'Flake8'
+	@verbose --only-failure flake8 \
+		--application-import-names=tests \
+		--import-order-style=pycharm \
+		$(PYTHON_FILES)
+	@ansi_color 2 && echo OK && ansi_reset
+
+.PHONY: ci-job-tests
+ci-job-tests: PYTEST = pytest --cov . --cov-append
+ci-job-tests: clean-coverage all
+	@$(H1) 'Tests (cover all)'
+	@$(H2) 'Without Valgrind'
+	@verbose $(PYTEST)
+	@verbose $(GCOVR) && $(M) clean-coverage-gcov
+	@$(H2) 'With Valgrind'
+	@verbose $(PYTEST) --valgrind
+	@verbose $(GCOVR) && $(M) clean-coverage-gcov
+	@$(H2) 'With Verbose Valgrind'
+	@verbose $(PYTEST) \
+		--cov-fail-under 100 \
+		--valgrind \
+		--valgrind-verbose \
+		tests/acalc/test_invalid_syntax.py
+
+.PHONY: ci-job-tests-alpine
+ci-job-tests-alpine: docker-image-alpine
+	@verbose $(RUN_ALPINE) make ci-job-tests
+
+.PHONY: ci-job-tests-ubuntu-bionic
+ci-job-tests-ubuntu-bionic: docker-image-ubuntu-bionic
+	@verbose $(RUN_UBUNTU_BIONIC) make ci-job-tests
+
+.PHONY: ci-stage-lint
+ci-stage-lint: ci-job-conventions ci-job-flake8
+
+.PHONY: ci-stage-tests
+ci-stage-tests: \
+	ci-job-tests \
+	ci-job-tests-alpine \
+	ci-job-tests-ubuntu-bionic
+
+.PHONY: ci-travis
+ci-travis: ci-stage-lint ci-job-tests
+
+.PHONY: ci-pipeline
+ci-pipeline: ci-stage-lint ci-stage-tests
