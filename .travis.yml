@@ -5,21 +5,5 @@ language: python
 cache: pip
 python:
   - "3.7"
-stages:
-  - lint
-  - test
-jobs:
-  include:
-    - stage: lint
-      name: Flake8
-      script: make flake8
-    - stage: lint
-      name: Conventions
-      script: make check-conventions
-    - stage: test
-      name: Host
-      before_install: sudo apt-get install -y libfl-dev valgrind
-      script: make gcovr
-    - stage: test
-      name: Alpine
-      script: make gcovr-alpine
+before_install: sudo apt-get install -y libfl-dev valgrind
+script: make ci-travis

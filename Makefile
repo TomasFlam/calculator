@@ -58,7 +58,7 @@ gcovr-ubuntu-bionic: docker-image-ubuntu-bionic
 	@verbose $(RUN_UBUNTU_BIONIC) make gcovr
 
 .PHONY: gcovr-all
-gcovr-all: gcovr gcovr-alpine
+gcovr-all: gcovr gcovr-alpine gcovr-ubuntu-bionic
 
 .PHONY: docker-image-alpine
 docker-image-alpine:
@@ -80,9 +80,12 @@ flake8:
 ci-stage-lint: check-conventions flake8
 
 .PHONY: ci-stage-test
-ci-stage-test: gcovr gcovr-alpine gcovr-ubuntu-bionic
+ci-stage-test: gcovr-all
 
 .PHONY: ci-travis
+ci-travis: ci-stage-lint gcovr
+
+.PHONY: ci-pipeline
 ci-pipeline: ci-stage-lint ci-stage-test
 
 .PHONY: pip-install
